@@ -1,4 +1,5 @@
 import os
+import time
 import psycopg2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -7,8 +8,19 @@ app = Flask(__name__)
 CORS(app)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+DB_SSLMODE = os.getenv("DB_SSLMODE", "disable")
 
-conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+def connect_with_retry(retries=20, delay_seconds=2):
+    last_error = None
+    for _ in range(retries):
+        try:
+            return psycopg2.connect(DATABASE_URL, sslmode=DB_SSLMODE)
+        except psycopg2.OperationalError as err:
+            last_error = err
+            time.sleep(delay_seconds)
+    raise last_error
+
+conn = connect_with_retry()
 cursor = conn.cursor()
 
 # create table
@@ -22,7 +34,7 @@ conn.commit()
 
 @app.route("/")
 def home():
-    return "Backend running 🚀"
+    return "Backend running"
 
 @app.route("/api/data", methods=["GET"])
 def get_data():

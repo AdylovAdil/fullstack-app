@@ -1,20 +1,20 @@
 import React from "react";
 import { useEffect, useState } from "react";
 
-const API = import.meta.env.VITE_API_URL;
+const API_BASE = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 
 export default function App() {
   const [items, setItems] = useState([]);
   const [text, setText] = useState("");
 
   const load = async () => {
-    const res = await fetch(API + "/api/data");
+    const res = await fetch(API_BASE + "/data");
     const data = await res.json();
     setItems(data);
   };
 
   const add = async () => {
-    await fetch(API + "/api/data", {
+    await fetch(API_BASE + "/data", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: text }),
@@ -24,7 +24,7 @@ export default function App() {
   };
 
   const remove = async (id) => {
-    await fetch(API + "/api/data/" + id, { method: "DELETE" });
+    await fetch(API_BASE + "/data/" + id, { method: "DELETE" });
     load();
   };
 
