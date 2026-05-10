@@ -10,6 +10,9 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 DATABASE_URL = os.getenv("DATABASE_URL")
 DB_SSLMODE = os.getenv("DB_SSLMODE", "disable")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is required")
+
 def connect_with_retry(retries=20, delay_seconds=2):
     last_error = None
     for _ in range(retries):
@@ -54,6 +57,10 @@ def delete_data(id):
     cursor.execute("DELETE FROM items WHERE id=%s", (id,))
     conn.commit()
     return jsonify({"status": "deleted"})
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
