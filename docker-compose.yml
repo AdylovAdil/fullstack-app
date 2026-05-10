@@ -8,8 +8,12 @@ services:
       POSTGRES_DB: mydb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
 
   backend:
     build: ./backend
@@ -17,8 +21,12 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:mypassword@postgres:5432/mydb
       DB_SSLMODE: disable
+    ports:
+      - "5000:5000"
     depends_on:
       - postgres
+    networks:
+      - app_network
 
   frontend:
     build:
@@ -26,8 +34,14 @@ services:
       args:
         VITE_API_URL: /api
     restart: unless-stopped
+    environment:
+      VITE_API_URL: /api
+    ports:
+      - "3000:3000"
     depends_on:
       - backend
+    networks:
+      - app_network
 
   nginx:
     image: nginx:alpine
@@ -39,6 +53,12 @@ services:
     depends_on:
       - frontend
       - backend
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   postgres_data:
