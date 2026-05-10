@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 DB_SSLMODE = os.getenv("DB_SSLMODE", "disable")

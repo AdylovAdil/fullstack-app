@@ -6,23 +6,28 @@ services:
       POSTGRES_DB: mydb
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: mypassword
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app_network
 
   backend:
     build: ./backend
     restart: unless-stopped
+    command: gunicorn app:app --bind 0.0.0.0:5000
     environment:
       DATABASE_URL: postgresql://postgres:mypassword@postgres:5432/mydb
       DB_SSLMODE: disable
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app_network
 
@@ -32,8 +37,8 @@ services:
       args:
         VITE_API_URL: /api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
       - backend
     networks:
