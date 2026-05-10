@@ -3,7 +3,7 @@ FROM node:18-alpine AS build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY . .
 ARG VITE_API_URL=/api
@@ -14,7 +14,7 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-RUN npm install -g serve
+RUN npm install -g serve@14.2.4
 COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
