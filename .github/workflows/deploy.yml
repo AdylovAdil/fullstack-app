@@ -3,18 +3,27 @@ name: Deploy to DigitalOcean
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
-          username: root
+          username: ${{ secrets.SERVER_USER }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script_stop: true
+          command_timeout: 30m
           script: |
-            cd /root/fullstack-app
+            cd ${{ secrets.APP_PATH }}
             git pull origin main
             docker-compose up -d --build
